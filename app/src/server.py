@@ -24,30 +24,33 @@ class DBManager:
         pf.close()
         self.cursor = self.connection.cursor()
     
-    def populate_db(self):
-        self.cursor.execute('DROP TABLE IF EXISTS blog')
-        self.cursor.execute('CREATE TABLE blog (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255))')
-        self.cursor.executemany('INSERT INTO blog (id, title) VALUES (%s, %s);', [(i, 'Blog post #%d'% i) for i in range (1,5)])
+    def create_db(self):
+        self.cursor.execute('DROP TABLE IF EXISTS daily_schedule')
+        self.cursor.execute('CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time DATETIME,end_time DATETIME,description VARCHAR(255)) ')
+        self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
         self.connection.commit()
+
+
     
-    def query_titles(self):
-        self.cursor.execute('SELECT title FROM blog')
+    def query_names(self):
+        self.cursor.execute('SELECT name FROM daily_schedule')
         rec = []
         for c in self.cursor:
             rec.append(c[0])
         return rec
 
 
+
 server = flask.Flask(__name__)
 conn = None
 
-@server.route('/blogs')
+@server.route('/create_schedule')
 def listBlog():
     global conn
     if not conn:
         conn = DBManager(password_file='/run/secrets/db-password')
-        conn.populate_db()
-    rec = conn.query_titles()
+        conn.create_db()
+    rec = conn.query_names()
 
     result = []
     for c in rec:
