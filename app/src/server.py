@@ -1,15 +1,12 @@
 import os
 import flask
 from flask import Response
+from flask import request
 import json
 import mysql.connector
 
 from datetime import datetime
 import socket
-
-# for debugging from Visual Studio Code -- turn off flask debugger first
-# import ptvsd
-# ptvsd.enable_attach(address=('0.0.0.0', 3000))
 
 class DBManager:
     def __init__(self, database='example', host="db", user="root", password_file=None):
@@ -30,8 +27,6 @@ class DBManager:
         self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
         self.connection.commit()
 
-
-    
     def query_names(self):
         self.cursor.execute('SELECT name FROM daily_schedule')
         rec = []
@@ -39,13 +34,37 @@ class DBManager:
             rec.append(c[0])
         return rec
 
+    def create_entry(self, name, start, end, description):
+        self.cursor.execute(
+        'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
+        (0, name, start, end, description))
+        self.connection.commit()
+
 
 
 server = flask.Flask(__name__)
 conn = None
 
+# /add_schedule/aaa/2000-01-01/2000-01-02/abc
+@server.route('/add_schedule/<name>/<start_time>/<end_time>/<description>')
+def add_schedule(name, start_time, end_time, description):
+    global conn
+    conn.create_entry(name, start_time, end_time, description)
+    return flask.jsonify({"response": "success"})
+
+
+
+@server.route('/list_schedule')
+def list_schedule():
+    global conn
+    rec = conn.query_names()
+    result = []
+    for c in rec:
+        result.append(c)
+    return flask.jsonify({"response": result})
+
 @server.route('/create_schedule')
-def listBlog():
+def create_schedule():
     global conn
     if not conn:
         conn = DBManager(password_file='/run/secrets/db-password')
@@ -60,7 +79,7 @@ def listBlog():
 
 @server.route('/')
 def hello():
-    return flask.jsonify({"response": "Hello from Docker!"})
+    return flask.jsonify({"Welcome to our website"})
 
 
 @server.route('/health')
