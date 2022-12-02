@@ -8,6 +8,24 @@ import mysql.connector
 from datetime import datetime
 import socket
 
+# reference from ed github link
+USR_SHOPPING_PROPS = {
+    'microservice': 'User shopping list microservice',
+    'api': 'http://127.0.0.1/shopping_list', #TO DO
+    'fields': ('user', 'list')
+}
+USR_TRAVEL_PROPS = {
+    'microservice': 'User travel plan microservice',
+    'api': 'http://127.0.0.1/travel_plan',
+    'fields': ('user', 'destination', 'startdate', 'enddate', 'detailed_plan')
+}
+USR_SCHEDULE_PROPS = {
+    'microservice': 'User schedule microservice',
+    'api': 'http://127.0.0.1/list_schedule',
+    'fields': ('name', 'start_time', 'end_time', 'description')
+}
+PROPS = (USR_TRAVEL_PROPS, USR_SHOPPING_PROPS, USR_SCHEDULE_PROPS)
+
 class DBManager:
     def __init__(self, database='example', host="db", user="root", password_file=None):
         pf = open(password_file, 'r')
