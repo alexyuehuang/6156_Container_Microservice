@@ -41,8 +41,15 @@ class DBManager:
     
     def create_db(self):
         self.cursor.execute('DROP TABLE IF EXISTS daily_schedule')
-        self.cursor.execute('CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time DATETIME,end_time DATETIME,description VARCHAR(255)) ')
-        self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
+        # self.cursor.execute('CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time DATETIME,end_time DATETIME,description VARCHAR(255)) ')
+        # self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
+        self.cursor.execute(
+            'CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time VARCHAR(255),end_time VARCHAR(255),description VARCHAR(255)) ')
+
+        self.cursor.executemany(
+            'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
+            [(i, 'schedule #%d' % i, '2022/11/1', '2022/11/2', 'ddd') for i in range(1, 5)])
+
         self.connection.commit()
 
     def query_names(self):
@@ -52,10 +59,22 @@ class DBManager:
             rec.append(c[0])
         return rec
 
+    def query_all(self):
+        self.cursor.execute('SELECT * FROM daily_schedule')
+        rec = []
+        for c in self.cursor:
+            # print(c)
+            # rec.append(c[0])
+            rec.append(c)
+        return rec
+
     def create_entry(self, name, start, end, description):
+        # self.cursor.execute(
+        # 'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
+        # (0, name, start, end, description))
         self.cursor.execute(
-        'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
-        (0, name, start, end, description))
+            'INSERT INTO daily_schedule ( name,start_time,end_time,description) VALUES (%s,%s,%s,%s);',
+            (name, start, end, description))
         self.connection.commit()
 
 
@@ -75,7 +94,8 @@ def add_schedule(name, start_time, end_time, description):
 @server.route('/list_schedule')
 def list_schedule():
     global conn
-    rec = conn.query_names()
+    # rec = conn.query_names()
+    rec = conn.query_all()
     result = []
     for c in rec:
         result.append(c)
