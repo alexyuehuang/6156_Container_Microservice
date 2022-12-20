@@ -27,30 +27,29 @@ USR_SCHEDULE_PROPS = {
 PROPS = (USR_TRAVEL_PROPS, USR_SHOPPING_PROPS, USR_SCHEDULE_PROPS)
 
 class DBManager:
-    def __init__(self, database='example', host="db", user="root", password_file=None):
-        pf = open(password_file, 'r')
+    def __init__(self, database='6156_schedule', host='e61561.cc790x5jaujy.us-east-1.rds.amazonaws.com', user="admin", password='dbuserdbuser'):
         self.connection = mysql.connector.connect(
             user=user, 
-            password=pf.read(),
+            password=password,
             host=host,
             database=database,
             auth_plugin='mysql_native_password'
         )
-        pf.close()
+        # pf.close()
         self.cursor = self.connection.cursor()
     
-    def create_db(self):
-        self.cursor.execute('DROP TABLE IF EXISTS daily_schedule')
-        # self.cursor.execute('CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time DATETIME,end_time DATETIME,description VARCHAR(255)) ')
-        # self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
-        self.cursor.execute(
-            'CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time VARCHAR(255),end_time VARCHAR(255),description VARCHAR(255)) ')
-
-        self.cursor.executemany(
-            'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
-            [(i, 'schedule #%d' % i, '2022/11/1', '2022/11/2', 'ddd') for i in range(1, 5)])
-
-        self.connection.commit()
+    # def create_db(self):
+    #     self.cursor.execute('DROP TABLE IF EXISTS daily_schedule')
+    #     # self.cursor.execute('CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time DATETIME,end_time DATETIME,description VARCHAR(255)) ')
+    #     # self.cursor.executemany('INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);', [(i, 'schedule #%d'% i,'2022/11/1','2022/11/2','ddd') for i in range (1,5)])
+    #     # self.cursor.execute(
+    #     #     'CREATE TABLE daily_schedule (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), start_time VARCHAR(255),end_time VARCHAR(255),description VARCHAR(255)) ')
+    #
+    #     self.cursor.executemany(
+    #         'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
+    #         [(i, 'schedule #%d' % i, '2022/11/1', '2022/11/2', 'ddd') for i in range(1, 5)])
+    #
+    #     self.connection.commit()
 
     def query_names(self):
         self.cursor.execute('SELECT name FROM daily_schedule')
@@ -77,10 +76,20 @@ class DBManager:
             (name, start, end, description))
         self.connection.commit()
 
+    def delete_entry(self, id):
+        # self.cursor.execute(
+        # 'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
+        # (0, name, start, end, description))
+        self.cursor.execute(
+            'DELETE FROM daily_schedule WHERE id=%s;',
+            (id))
+        self.connection.commit()
+
 
 
 server = flask.Flask(__name__)
-conn = None
+# conn = None
+conn = DBManager()
 
 # /add_schedule/aaa/2000-01-01/2000-01-02/abc
 @server.route('/add_schedule/<name>/<start_time>/<end_time>/<description>')
@@ -89,6 +98,11 @@ def add_schedule(name, start_time, end_time, description):
     conn.create_entry(name, start_time, end_time, description)
     return flask.jsonify({"response": "success"})
 
+@server.route('/delete_schedule/<id>')
+def delete_schedule(id):
+    global conn
+    conn.delete_entry(id)
+    return flask.jsonify({"response": "success"})
 
 
 @server.route('/list_schedule')
