@@ -80,9 +80,12 @@ class DBManager:
         # self.cursor.execute(
         # 'INSERT INTO daily_schedule (id, name,start_time,end_time,description) VALUES (%s, %s,%s,%s,%s);',
         # (0, name, start, end, description))
-        self.cursor.execute(
-            'DELETE FROM daily_schedule WHERE id=%s;',
-            (id))
+        line='DELETE FROM daily_schedule WHERE id ='+id+';'
+        # return line
+        self.cursor.execute(line)
+        # self.cursor.execute(
+        #     'DELETE FROM daily_schedule WHERE id = %s;',
+        #     (str(id)))
         self.connection.commit()
 
 
@@ -91,7 +94,7 @@ server = flask.Flask(__name__)
 # conn = None
 conn = DBManager()
 
-# /add_schedule/aaa/2000-01-01/2000-01-02/abc
+# /add_schedule/travel/2022-12-09/2022-12-12/to Boston
 @server.route('/add_schedule/<name>/<start_time>/<end_time>/<description>')
 def add_schedule(name, start_time, end_time, description):
     global conn
@@ -101,7 +104,8 @@ def add_schedule(name, start_time, end_time, description):
 @server.route('/delete_schedule/<id>')
 def delete_schedule(id):
     global conn
-    conn.delete_entry(id)
+    t = conn.delete_entry(id)
+    # return flask.jsonify({"response": t})
     return flask.jsonify({"response": "success"})
 
 
